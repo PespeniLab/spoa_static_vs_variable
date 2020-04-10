@@ -1,0 +1,1 @@
+# spoa_static_vs_variable
