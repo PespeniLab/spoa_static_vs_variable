@@ -14,6 +14,18 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 
 - `gene_annotation_enrichment.md`
   - links SNPs to genes, gene annotations, and performs functional enrichment/ generates the GO figure.
+  
 
+### Figures
+
+- fig 1:
+- fig 2:
+- fig 3:
+- fig 4:
+- fig 5: 
+- fig 6: in `gene_annotation_enrichment.md`
+
+- supplemental figures
+  - 
 
 
