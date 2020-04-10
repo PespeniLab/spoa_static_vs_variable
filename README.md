@@ -22,7 +22,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 - fig 2:
 - fig 3:
 - fig 4:
-- fig 5: `correlation_plots.R`
+- fig 5: `CorrelationPlots.R`
 - fig 6: in `gene_annotation_enrichment.md`
 
 - supplemental figures
