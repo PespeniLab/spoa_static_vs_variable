@@ -26,6 +26,6 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 - fig 6: in `gene_annotation_enrichment.md`
 
 - supplemental figures
-  - 
+  - Fig. S1: `snp_class_plot.R`- plot and analysis of loci in different regions of the genome.
 
 
