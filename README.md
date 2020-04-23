@@ -21,9 +21,8 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 - fig 1: `Fig01.R`
 - fig 2:
 - fig 3:
-- fig 4:
-- fig 5: `CorrelationPlots.R`
-- fig 6: in `gene_annotation_enrichment.md`
+- fig 4: `CorrelationPlots.R`
+- fig 5: in `gene_annotation_enrichment.md`
 
 - supplemental figures
   - Fig. S1: `snp_class_plot.R`- plot and analysis of loci in different regions of the genome.
