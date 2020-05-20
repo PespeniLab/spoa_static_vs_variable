@@ -256,14 +256,16 @@ all$GO_term[which(all$GO_term == "unknown")] <- NA
 
 all.rm <- all[!is.na(all$GO_term),]
 all <- all.rm
-unique(all$SPU_1)
+#unique(all$SPU_1)
 
 all$SPU_1 <- gsub("CHR_START-", "", all$SPU_1)
 all$SPU_1 <- gsub("-CHR_END-", "", all$SPU_1)
 
 genes <- unique(all$SPU_1)
 
-toTest <- c("DAY7_D7_7_0_S", "DAY7_D7_7_0_V", "DAY7_D7_7_5_S", "DAY7_D7_7_5_V", "DAY7_D7_8_1_V" )
+#toTest <- c("DAY7_D7_7_0_S", "DAY7_D7_7_0_V", "DAY7_D7_7_5_S", "DAY7_D7_7_5_V", "DAY7_D7_8_1_V" )
+toTest <- c("DAY7_D7_7_0_S", "DAY7_D7_7_0_V", "DAY7_D7_7_5_S", "DAY7_D7_7_5_V", "DAY7_D7_8_1_V",
+            "D7_7_0_S", "D7_7_0_V", "D7_7_5_S", "D7_7_5_V", "D7_8_1_V", "D7_8_1_S" )
 
 for(test_set in toTest){
     out <- as.data.frame(matrix(nrow=length(genes), ncol=2))
@@ -303,7 +305,7 @@ for(test_set in toTest){
         resultWeight <- runTest(myGOdata, algorithm="weight01", statistic="fisher")
         resultClassic <- runTest(myGOdata, algorithm="classic", statistic="fisher")
         allRes <- GenTable(myGOdata, classicFisher = resultClassic,  weight = resultWeight, orderBy = "weight", ranksOf = "weight"  ,
-            topNodes = 50)
+            topNodes = 100)
         allRes$ontology <- j
         out.save <- rbind(out.save,allRes[which(allRes$weight < 0.05 ),])
     }
@@ -313,7 +315,20 @@ for(test_set in toTest){
             row.names=FALSE, quote=FALSE,sep="\t")
 }
 
+
+###########
+##
+### GO enrichment, coding vs non
+##
+###########
+
+
+
 ```
+
+
+
+
 
 ### heirarchical clustering for plots
 
@@ -326,6 +341,10 @@ library(GOSemSim)
 library(ggplot2)
 library(ggdendro)
 library(dplyr)
+library(org.Dm.eg.db)
+#################
+## BP
+#################
 
 ### first, want to generate a table of all our go terms
 S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_0_S_GO.out", header=TRUE, sep="\t")
@@ -348,21 +367,137 @@ goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by
 goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
 goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
 
-write.table(goids,"~/Documents/UVM/spoa/node5_summarytable.txt", col.names=T, row.names=F, quote=F, sep="\t")
+write.table(goids,"~/Documents/UVM/spoa/node5_summarytable_BP.txt", col.names=T, row.names=F, quote=F, sep="\t")
 
-df <- read.csv("~/Documents/UVM/spoa/node5_summarytable.txt", header=T, sep="\t")
+df <- read.csv("~/Documents/UVM/spoa/node5_summarytable_BP.txt", header=T, sep="\t")
 
 #BiocManager::install("org.Dm.eg.db")
-
 ### IMPORTANT!!!
 # trace(godata, edit=TRUE)
 ## need to edit this from GO to GOALL to work with topgo...
-## note that this makes the go mapping data much slower to compute
+## note that this makes the go mapping data MUCH slower to compute.
+## this needs to be done every time youopen a new R session
 hsGObp <- godata('org.Dm.eg.db', ont="BP", computeIC=FALSE)
-#hsGOmf <- godata('org.Dm.eg.db', ont="MF", computeIC=FALSE)
-#hsGOcc <- godata('org.Dm.eg.db', ont="CC",computeIC=FALSE)
+hsGOmf <- godata('org.Dm.eg.db', ont="MF", computeIC=FALSE)
+hsGOcc <- godata('org.Dm.eg.db', ont="CC",computeIC=FALSE)
 
-gobp<-c("GO:0002252","GO:0007156","GO:0043624","GO:0044255","GO:0140053","GO:0006099","GO:0006396","GO:0006626","GO:0007006","GO:0010501","GO:0016050","GO:0042273","GO:0044743","GO:0046474","GO:0065002","GO:1990542","GO:0006497","GO:0006749","GO:0006935","GO:0009247","GO:0042219","GO:0045087","GO:0046488","GO:0046854","GO:0048015","GO:0051187","GO:0001522","GO:0070887","GO:0090092","GO:0043401")
+# pull out the go terms from the df
+gobp <- as.character(df$GO.ID)
+
+# calculate distance matrix
+bpdist <- (mgoSim(gobp, gobp, semData=hsGObp, measure="Wang", combine=NULL))
+# using lapply, loop over columns and match values to the look up table. store in "new".
+# this gives us the actual names of the GO terms
+row.names(bpdist) <- paste(row.names(bpdist),(unlist(lapply(row.names(bpdist), function(x) df$Term[match(x, df$GO.ID)]))), sep=": ")
+colnames(bpdist) <- paste(colnames(bpdist),(unlist(lapply(colnames(bpdist), function(x) df$Term[match(x, df$GO.ID)]))), sep=": ")
+
+clusterbp <- hclust(1-as.dist(bpdist), method = "ward.D2")
+
+#convert cluster object to use with ggplot
+dendrbp <- dendro_data(clusterbp, type="rectangle") 
+
+#your own labels (now rownames) are supplied in geom_text() and label=label
+bpplot <- ggplot() + 
+  geom_segment(data=segment(dendrbp), aes(x=x, y=y, xend=xend, yend=yend)) + 
+  #geom_text(data=label(dendr), aes(x=x, y=y, label=label, hjust=0), size=4) +
+  coord_flip() + scale_y_reverse(expand=c(0.2, 0)) + 
+ scale_x_continuous(breaks = label(dendrbp)$x,
+                    labels=label(dendrbp)$label,
+                     position = "top")+
+   theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text.y = element_text(size = rel(1.1), hjust=10),
+        panel.grid = element_blank(),
+         axis.text.x=element_blank(),
+)
+
+
+#################
+## CC
+#################
+
+# cc
+S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_0_S_GO.out", header=TRUE, sep="\t")
+V70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_0_V_GO.out", header=TRUE, sep="\t")
+S75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_5_S_GO.out", header=TRUE, sep="\t")
+V75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_5_V_GO.out", header=TRUE, sep="\t")
+V81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_8_1_V_GO.out", header=TRUE, sep="\t")
+
+S70 <- S70[which(S70$ontology == "CC"),]
+V70 <- V70[which(V70$ontology == "CC"),]
+S75 <- S75[which(S75$ontology == "CC"),]
+V75 <- V75[which(V75$ontology == "CC"),]
+V81 <- V81[which(V81$ontology == "CC"),]
+
+goids <- unique(rbind(S70[,1:2],V70[,1:2], S75[,1:2],V75[,1:2],V81[,1:2]))
+
+goids <- merge(goids,data.frame(GO.ID = S70$GO.ID,pH_7.0_S_pval= S70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V70$GO.ID,pH_7.0_V_pval= V70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
+
+write.table(goids,"~/Documents/UVM/spoa/node5_summarytable_CC.txt", col.names=T, row.names=F, quote=F, sep="\t")
+
+df <- read.csv("~/Documents/UVM/spoa/node5_summarytable_CC.txt", header=T, sep="\t")
+
+gocc <- as.character(df$GO.ID)
+
+ccdist <- (mgoSim(gocc, gocc, semData=hsGOcc, measure="Wang", combine=NULL))
+# using lapply, loop over columns and match values to the look up table. store in "new".
+row.names(ccdist) <- paste(row.names(ccdist),(unlist(lapply(row.names(ccdist), function(x) df$Term[match(x, df$GO.ID)]))), sep=": ")
+colnames(ccdist) <- paste(colnames(ccdist),(unlist(lapply(colnames(ccdist), function(x) df$Term[match(x, df$GO.ID)]))), sep=": ")
+
+clustercc <- hclust(1-as.dist(ccdist), method = "ward.D2")
+
+#convert cluster object to use with ggplot
+dendrcc <- dendro_data(clustercc, type="rectangle") 
+
+#your own labels (now rownames) are supplied in geom_text() and label=label
+ccplot <- ggplot() + 
+  geom_segment(data=segment(dendrcc), aes(x=x, y=y, xend=xend, yend=yend)) + 
+  #geom_text(data=label(dendr), aes(x=x, y=y, label=label, hjust=0), size=4) +
+  coord_flip() + scale_y_reverse(expand=c(0.2, 0)) + 
+ scale_x_continuous(breaks = label(dendrcc)$x,
+                    labels=label(dendrcc)$label,
+                     position = "top")+
+   theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text.y = element_text(size = rel(1.1), hjust=10),
+        panel.grid = element_blank(),
+         axis.text.x=element_blank(),
+)
+
+#################
+## MF
+#################
+
+# mf
+S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_0_S_GO.out", header=TRUE, sep="\t")
+V70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_0_V_GO.out", header=TRUE, sep="\t")
+S75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_5_S_GO.out", header=TRUE, sep="\t")
+V75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_7_5_V_GO.out", header=TRUE, sep="\t")
+V81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5DAY7_D7_8_1_V_GO.out", header=TRUE, sep="\t")
+
+S70 <- S70[which(S70$ontology == "MF"),]
+V70 <- V70[which(V70$ontology == "MF"),]
+S75 <- S75[which(S75$ontology == "MF"),]
+V75 <- V75[which(V75$ontology == "MF"),]
+V81 <- V81[which(V81$ontology == "MF"),]
+
+goids <- unique(rbind(S70[,1:2],V70[,1:2], S75[,1:2],V75[,1:2],V81[,1:2]))
+
+goids <- merge(goids,data.frame(GO.ID = S70$GO.ID,pH_7.0_S_pval= S70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V70$GO.ID,pH_7.0_V_pval= V70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
+
+write.table(goids,"~/Documents/UVM/spoa/node5_summarytable_MF.txt", col.names=T, row.names=F, quote=F, sep="\t")
+
+df <- read.csv("~/Documents/UVM/spoa/node5_summarytable_MF.txt", header=T, sep="\t")
+
+gomf <- as.character(df$GO.ID)
 
 mfdist <- (mgoSim(gomf, gomf, semData=hsGOmf, measure="Wang", combine=NULL))
 # using lapply, loop over columns and match values to the look up table. store in "new".
@@ -389,69 +524,13 @@ mfplot <- ggplot() +
          axis.text.x=element_blank(),
 )
 
-#################
-## CC
-#################
-ccdist <- (mgoSim(gocc, gocc, semData=hsGOcc, measure="Wang", combine=NULL))
-# using lapply, loop over columns and match values to the look up table. store in "new".
-row.names(ccdist) <- paste(row.names(ccdist),(unlist(lapply(row.names(ccdist), function(x) df$Term.x[match(x, df$GO.ID)]))), sep=": ")
-colnames(ccdist) <- paste(colnames(ccdist),(unlist(lapply(colnames(ccdist), function(x) df$Term.x[match(x, df$GO.ID)]))), sep=": ")
-
-clustercc <- hclust(1-as.dist(ccdist), method = "ward.D2")
-
-#convert cluster object to use with ggplot
-dendrcc <- dendro_data(clustercc, type="rectangle") 
-
-#your own labels (now rownames) are supplied in geom_text() and label=label
-ccplot <- ggplot() + 
-  geom_segment(data=segment(dendrcc), aes(x=x, y=y, xend=xend, yend=yend)) + 
-  #geom_text(data=label(dendr), aes(x=x, y=y, label=label, hjust=0), size=4) +
-  coord_flip() + scale_y_reverse(expand=c(0.2, 0)) + 
- scale_x_continuous(breaks = label(dendrcc)$x,
- 					labels=label(dendrcc)$label,
-                     position = "top")+
-   theme_minimal() +
-  theme(axis.title = element_blank(),
-        axis.text.y = element_text(size = rel(1.1), hjust=10),
-        panel.grid = element_blank(),
-         axis.text.x=element_blank(),
-)
 
 
-#################
-## BP
-#################
-bpdist <- (mgoSim(gobp, gobp, semData=hsGObp, measure="Wang", combine=NULL))
-# using lapply, loop over columns and match values to the look up table. store in "new".
-row.names(bpdist) <- paste(row.names(bpdist),(unlist(lapply(row.names(bpdist), function(x) df$Term.x[match(x, df$GO.ID)]))), sep=": ")
-colnames(bpdist) <- paste(colnames(bpdist),(unlist(lapply(colnames(bpdist), function(x) df$Term.x[match(x, df$GO.ID)]))), sep=": ")
-
-clusterbp <- hclust(1-as.dist(bpdist), method = "ward.D2")
-
-#convert cluster object to use with ggplot
-dendrbp <- dendro_data(clusterbp, type="rectangle") 
-
-#your own labels (now rownames) are supplied in geom_text() and label=label
-bpplot <- ggplot() + 
-  geom_segment(data=segment(dendrbp), aes(x=x, y=y, xend=xend, yend=yend)) + 
-  #geom_text(data=label(dendr), aes(x=x, y=y, label=label, hjust=0), size=4) +
-  coord_flip() + scale_y_reverse(expand=c(0.2, 0)) + 
- scale_x_continuous(breaks = label(dendrbp)$x,
- 					labels=label(dendrbp)$label,
-                     position = "top")+
-   theme_minimal() +
-  theme(axis.title = element_blank(),
-        axis.text.y = element_text(size = rel(1.1), hjust=10),
-        panel.grid = element_blank(),
-         axis.text.x=element_blank(),
-)
-
-
-ggsave("~/spoa/mf.pdf", plot=mfplot, 
+ggsave("~/Documents/UVM/spoa/figures/mf.pdf", plot=mfplot, 
 		width=5, height=3, units="in")
-ggsave("~/spoa/cc.pdf", plot=ccplot, 
+ggsave("~/Documents/UVM/spoa/figures/cc.pdf", plot=ccplot, 
 		width=5, height=3, units="in")
-ggsave("~/spoa/bp.pdf", plot=bpplot, 
+ggsave("~/Documents/UVM/spoa/figures/bp.pdf", plot=bpplot, 
 		width=6, height=7, units="in")
 
 
