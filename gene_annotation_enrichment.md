@@ -342,6 +342,7 @@ library(ggplot2)
 library(ggdendro)
 library(dplyr)
 library(org.Dm.eg.db)
+
 #################
 ## BP
 #################
@@ -535,6 +536,93 @@ ggsave("~/Documents/UVM/spoa/figures/bp.pdf", plot=bpplot,
 
 
 # note that final figures were made in inkscape.
+
+
+
+#### generate tables for supplemental:
+
+### first, want to generate a table of all our go terms
+S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_S_GO.out", header=TRUE, sep="\t")
+V70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_V_GO.out", header=TRUE, sep="\t")
+S75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_S_GO.out", header=TRUE, sep="\t")
+V75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_V_GO.out", header=TRUE, sep="\t")
+V81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_V_GO.out", header=TRUE, sep="\t")
+S81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_S_GO.out", header=TRUE, sep="\t")
+
+S70 <- S70[which(S70$ontology == "BP"),]
+V70 <- V70[which(V70$ontology == "BP"),]
+S75 <- S75[which(S75$ontology == "BP"),]
+V75 <- V75[which(V75$ontology == "BP"),]
+V81 <- V81[which(V81$ontology == "BP"),]
+S81 <- S81[which(V81$ontology == "BP"),]
+
+goids <- unique(rbind(S70[,1:2],V70[,1:2], S75[,1:2],V75[,1:2],V81[,1:2],S81[,1:2]))
+
+goids <- merge(goids,data.frame(GO.ID = S70$GO.ID,pH_7.0_S_pval= S70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V70$GO.ID,pH_7.0_V_pval= V70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S81$GO.ID,pH_8.1_S_pval= S81$weight), by="GO.ID", all=T)
+
+write.table(goids,"~/Documents/UVM/spoa/summarytable_BP_d1_vs_d7.txt", col.names=T, row.names=F, quote=F, sep="\t")
+
+## MF
+
+### first, want to generate a table of all our go terms
+S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_S_GO.out", header=TRUE, sep="\t")
+V70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_V_GO.out", header=TRUE, sep="\t")
+S75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_S_GO.out", header=TRUE, sep="\t")
+V75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_V_GO.out", header=TRUE, sep="\t")
+V81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_V_GO.out", header=TRUE, sep="\t")
+S81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_S_GO.out", header=TRUE, sep="\t")
+
+S70 <- S70[which(S70$ontology == "MF"),]
+V70 <- V70[which(V70$ontology == "MF"),]
+S75 <- S75[which(S75$ontology == "MF"),]
+V75 <- V75[which(V75$ontology == "MF"),]
+V81 <- V81[which(V81$ontology == "MF"),]
+S81 <- S81[which(V81$ontology == "MF"),]
+
+goids <- unique(rbind(S70[,1:2],V70[,1:2], S75[,1:2],V75[,1:2],V81[,1:2],S81[,1:2]))
+
+goids <- merge(goids,data.frame(GO.ID = S70$GO.ID,pH_7.0_S_pval= S70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V70$GO.ID,pH_7.0_V_pval= V70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S81$GO.ID,pH_8.1_S_pval= S81$weight), by="GO.ID", all=T)
+
+write.table(goids,"~/Documents/UVM/spoa/summarytable_MF_d1_vs_d7.txt", col.names=T, row.names=F, quote=F, sep="\t")
+
+## CC
+
+### first, want to generate a table of all our go terms
+S70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_S_GO.out", header=TRUE, sep="\t")
+V70 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_0_V_GO.out", header=TRUE, sep="\t")
+S75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_S_GO.out", header=TRUE, sep="\t")
+V75 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_7_5_V_GO.out", header=TRUE, sep="\t")
+V81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_V_GO.out", header=TRUE, sep="\t")
+S81 <- read.csv("~/Documents/UVM/spoa/GO_results/node5D7_8_1_S_GO.out", header=TRUE, sep="\t")
+
+S70 <- S70[which(S70$ontology == "CC"),]
+V70 <- V70[which(V70$ontology == "CC"),]
+S75 <- S75[which(S75$ontology == "CC"),]
+V75 <- V75[which(V75$ontology == "CC"),]
+V81 <- V81[which(V81$ontology == "CC"),]
+S81 <- S81[which(V81$ontology == "CC"),]
+
+goids <- unique(rbind(S70[,1:2],V70[,1:2], S75[,1:2],V75[,1:2],V81[,1:2],S81[,1:2]))
+
+goids <- merge(goids,data.frame(GO.ID = S70$GO.ID,pH_7.0_S_pval= S70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V70$GO.ID,pH_7.0_V_pval= V70$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S75$GO.ID,pH_7.5_S_pval= S75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V75$GO.ID,pH_7.5_V_pval= V75$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = V81$GO.ID,pH_8.1_V_pval= V81$weight), by="GO.ID", all=T)
+goids <- merge(goids,data.frame(GO.ID = S81$GO.ID,pH_8.1_S_pval= S81$weight), by="GO.ID", all=T)
+
+write.table(goids,"~/Documents/UVM/spoa/summarytable_CC_d1_vs_d7.txt", col.names=T, row.names=F, quote=F, sep="\t")
+
 
 ```
 
