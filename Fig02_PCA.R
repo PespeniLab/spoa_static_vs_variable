@@ -1,10 +1,4 @@
-### Updating PCA
-install.packages("ggplot2")
-install.packages("reshape")
-install.packages("data.table")
-install.packages("gridExtra")
-install.packages("scales")
-
+# Fig 2
 
 library(stringr)
 library(ggplot2)
@@ -13,8 +7,8 @@ library(data.table)
 library(gridExtra)
 library(scales)
 
-af <- read.table("/Users/aprilgarrett/Desktop/MastersThesis/GenomicAnalyses/filtered_allele_freqs_v2.txt", header=TRUE)
-dat3 <- read.table("/Users/aprilgarrett/Desktop/MastersThesis/GenomicAnalyses/filtered_variants_v2.txt", header=TRUE)
+af <- read.table("~/Documents/UVM/spoa/filtered_allele_freqs_v2.txt", header=TRUE)
+dat3 <- read.table("~/Documents/UVM/spoa/filtered_variants_v2.txt", header=TRUE)
 
 pops <- c(
   "D1_7_0_S_02", "D1_7_0_S_03", "D1_7_0_S_04", "D1_7_0_S_05",
@@ -50,13 +44,12 @@ percentVar <- round(pcaResult$sdev^2/sum(pcaResult$sdev^2)*100, digits=2)
 
 dat.p <- data.frame(pH=substr(pops, 4,6), condition=substr(pops, 8,8),
                     day=substr(pops, 1,2),
-                    PC1 = pcaResult$x[,1],  PC2= pcaResult$x[,2])
+                    PC1 = pcaResult$x[,1],  PC2= pcaResult$x[,2],
+                    treatment= paste(substr(pops, 4,6),substr(pops, 8,8),sep=""))
+
 
 head(dat.p)
 
-write.csv(dat.p, file = "pca_dat.csv")
-#output to excel and added column for treatment (e.g., 7_0S), so color for PCA can be based on one of the 6 pH conditions
-# saved as pca_dat_updated.csv and uploaded back into R
 #########################################################################################################
 
 ####
@@ -72,11 +65,26 @@ write.csv(dat.p, file = "pca_dat.csv")
 #  darkgreen - 8.1S
 #  darkseagreen1 - 8.1V
 
-dat.p <- read.csv("pca_dat_updated.csv")
+#dat.p <- read.csv("pca_dat_updated.csv")
 head(dat.p)
 
 dat.p$treatment <- factor(dat.p$treatment, levels=c("8_1S","8_1V","7_5S","7_5V","7_0S","7_0V"))
 head(dat.p)
+
+library(vegan)
+library(pairwiseAdonis)
+
+trt.in <- paste(substr(pops, 4,6),substr(pops, 8,8),sep="")
+day.in <- substr(pops, 1,2)
+#trt.in <- paste(substr(pops, 4,6),substr(pops, 8,8),sep="")
+all.in <- paste(trt.in, day.in, sep="_")
+
+adonis(freqs~all.in)
+pairwise.adonis(dist(freqs),all.in, p.adjust.m="fdr")
+
+
+
+#
 
 d <- ggplot(dat.p, aes(PC1, PC2, fill=treatment, shape=day, size=day)) +
   geom_point(color="black", alpha=0.75) +
@@ -91,14 +99,69 @@ d <- ggplot(dat.p, aes(PC1, PC2, fill=treatment, shape=day, size=day)) +
   #theme(legend.position = c(0.88,0.17))+
   theme(legend.text=element_text(size=10),legend.title=element_blank())+
   theme(legend.background = element_rect(colour = 'black', fill = 'white', linetype='solid'))+
-  guides(fill=guide_legend(override.aes=list(shape=c(23,23,23,23,23,23), 
+  guides(fill=guide_legend(override.aes=list(shape=c(24,24,24,24,24,24), 
                                              size=c(5,5,5,5,5,5), fill=c('darkgreen', 'darkseagreen1', '#2222ff', 'lightskyblue', '#be0000', '#ff817b'))))
   #ggtitle("pH vs. Condition vs. Day")
 
-d
 
-png("/Users/aprilgarrett/Desktop/MastersThesis/GenomicAnalyses/figures/Fig02_pca.png", res=300, height=5, width=8, units="in")
+#png("/Users/aprilgarrett/Desktop/MastersThesis/GenomicAnalyses/figures/Fig02_pca.png", res=300, height=5, width=8, units="in")
 
-d
+#dev.off()
 
+
+### Plotting VD of Sig. SNPs from CMH
+
+# Making Venn Diagram (4-way) of 7.5 and 7.0 S and V, all against D7 control (8.1S)
+library(VennDiagram)
+
+venn.plot <- draw.quad.venn(
+  area1 = 24,
+  area2 = 34,
+  area3 = 602,
+  area4 = 253,
+  n12 = 4,
+  n13 = 6,
+  n14 = 6,
+  n23 = 6,
+  n24 = 1,
+  n34 = 106,
+  n123 = 1,
+  n124 = 1,
+  n134 = 4,
+  n234 = 1,
+  n1234 = 1,
+  category = c("7.5 Static", "7.5 Variable", "7.0 Static", "7.0 Variable"),
+  fill = c("blue","light blue","red","pink"),
+  lty = "dashed",
+  cex = 1.5,
+  cat.cex = 1.2,
+  cat.col = c("blue","light blue","red","pink")
+)
+
+library(gridBase)
+library(multipanelfigure)
+
+figure <- multi_panel_figure(
+    width = c(110.4, 73.6),
+    height = c(90),
+    rows = 1)
+figure
+
+figure %<>% 
+    fill_panel(d) %<>%
+    fill_panel(venn.plot)
+
+pdf("~/Documents/UVM/spoa/figures/Fig02.pdf",height=3.54, width=8.5)
+
+figure
 dev.off()
+
+figure %<>% 
+    fill_panel(d) %<>%
+    fill_panel(d)
+
+figure <- multi_panel_figure(columns = 1, rows = 2)
+par(mfrow = c(1,2), mar=c(0,0,0,0), oma=c(0,0,0,0))
+# leave left half empty!
+plot.new()
+grid.draw(venn.plot)
