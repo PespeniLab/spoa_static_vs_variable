@@ -1,8 +1,23 @@
-# S. purpuratus variable and static pH experiment
+# Unique genomic and phenotypic responses to extreme and variable pH conditions in purple urchin larvae
 
-This repository contains scripts for analyses of a static and variable pH single generation selection experiment in S. purpuratus. 
+This repository contains scripts for analyses of a static and variable pH single generation selection experiment in S. purpuratus. This is published in Integrative and Comparative Biology. Link to paper [here](https://doi.org/10.1093/icb/icaa072).
+
+If you use these resources, please cite the following publication:
+
+Garrett, A.D., Brennan, R.S., Steinhart, A.L., Pelletier, A.M. and Pespeni, M.H., 2020. Unique genomic and phenotypic responses to extreme and variable pH conditions in purple urchin larvae. Integrative and Comparative Biology.
+
+We are happy to discuss any issues and/or answer questions about the scripts.
+
 
 ## Data availability
+
+All data for these analyses are available for public use. Please contact us with any questions.
+
+Raw sequence data: ???
+pH: `data/pH_Data.csv`
+Morphology: `data/Body_length_Data.csv`
+Survival: `data/Survival_Data.csv`
+Summary table of results: ???
 
 ## Scripts
 
