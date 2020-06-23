@@ -46,7 +46,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 
 - fig 1: `Fig01.R`
 - fig 2: `Fig02_PCA.R`
-- fig 3: `Fig03_VD.R`
+- fig 3: `snp_class_plot.R`
 - fig 4: `CorrelationPlots.R`
 - fig 5: in `gene_annotation_enrichment.md`
 
