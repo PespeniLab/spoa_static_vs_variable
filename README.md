@@ -10,13 +10,39 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 
 ### data processing, variant calling and filtering
 
-### Analysis
+#### Prep for alignment
 
-- `gene_annotation_enrichment.md`
-  - links SNPs to genes, gene annotations, and performs functional enrichment/ generates the GO figure.
-  
+- Trim with trimmomatic
+- sort and index genome
+    - `SortIndexSamtools.sh`
 
-### Figures
+#### align
+
+- align with bwa mem
+
+#### Call variants
+
+- initially using varscan with very lenient parameters. This requires more stringent filtering in the next step.
+
+#### Filter variants
+
+- Filter by missing, depth, MAF, and so on.
+
+
+### Analysis and figures
+
+-PCA, PERMANOVA
+  - Fig02_PCA.R
+
+- Calculate CMH statistic
+
+
+
+- Run GO enrichment
+  - `gene_annotation_enrichment.md`
+  - These scripts link SNPs to genes, gene annotations, and performs functional enrichment/ generates the GO figure.
+
+#### Figures
 
 - fig 1: `Fig01.R`
 - fig 2: `Fig02_PCA.R`
