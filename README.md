@@ -17,7 +17,9 @@ Raw sequence data: ???
 pH: `data/pH_Data.csv`
 Morphology: `data/Body_length_Data.csv`
 Survival: `data/Survival_Data.csv`
-Summary table of results: ???
+Summary table of results:
+- allele frequencies for all loci: `filtered_allele_freqs.txt.gz`
+- CMH results: `cmh_output.txt.gz`
 
 ## Scripts
 
