@@ -52,7 +52,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 
 ### Analysis and figures
 
--PCA, PERMANOVA
+- PCA, PERMANOVA
   - `Fig02_PCA.R`
 
 - Calculate CMH statistic
