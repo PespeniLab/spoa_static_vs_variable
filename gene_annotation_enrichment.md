@@ -259,7 +259,7 @@ all <- all.rm
 #unique(all$SPU_1)
 
 all$SPU_1 <- gsub("CHR_START-", "", all$SPU_1)
-all$SPU_1 <- gsub("-CHR_END-", "", all$SPU_1)
+all$SPU_1 <- gsub("-CHR_END", "", all$SPU_1)
 
 genes <- unique(all$SPU_1)
 
@@ -298,19 +298,19 @@ for(test_set in toTest){
 
     for(j in c("BP", "CC", "MF")){
 
-        myGOdata <- new("topGOdata", description="My project", 
+        myGOdata <- (new("topGOdata", description="My project", 
             ontology=j, allGenes=geneList,
             annot = annFUN.gene2GO, gene2GO = geneID2GO,
-            nodeSize = 5 )
+            nodeSize = 5 ))
         resultWeight <- runTest(myGOdata, algorithm="weight01", statistic="fisher")
         resultClassic <- runTest(myGOdata, algorithm="classic", statistic="fisher")
         allRes <- GenTable(myGOdata, classicFisher = resultClassic,  weight = resultWeight, orderBy = "weight", ranksOf = "weight"  ,
-            topNodes = 100)
+            topNodes = length(resultWeight@score))
         allRes$ontology <- j
         out.save <- rbind(out.save,allRes[which(allRes$weight < 0.05 ),])
     }
 
-    write.table(file=paste("~/spoa/analysis/node5", test_set, "_GO.out", sep=""), 
+    write.table(file=paste("~/spoa/analysis/", test_set, "_GO.txt", sep=""), 
              out.save, col.names=TRUE,
             row.names=FALSE, quote=FALSE,sep="\t")
 }
@@ -321,6 +321,76 @@ for(test_set in toTest){
 ### GO enrichment, coding vs non
 ##
 ###########
+
+# add another subloop to split exonic vs others... not sure exactly how to break down.
+
+all$class <- as.character(all$class)
+all$class[which(all$class == "non-synonymous")] <- c("exon")
+all$class[which(all$class == "synonymous")] <- c("exon")
+snp_class <- unique(all$class)
+
+for(test_class in snp_class){
+    tmp_all <- all[which(all$class == test_class),]
+    # subset to genes in this snp class
+    genes <- unique(tmp_all$SPU_1)
+
+    for(test_set in toTest){
+        out <- as.data.frame(matrix(nrow=length(genes), ncol=2))
+        ofInterest <- c()
+        out.save <- as.data.frame(matrix(ncol=8, nrow=0))
+        colnames(out.save) <- c("GO.ID", "Term","Annotated","Significant","Expected","classicFisher","weight", "ontology")
+        for(i in 1:length(genes)){
+            a <- tmp_all[which(tmp_all$SPU_1 == genes[i]),]
+            out[i,1] <- as.character(a$SPU_1[1])
+            out[i,2] <- a$GO_term[1]
+            if(sum(a[,paste(test_set, "_SIG", sep="")]) > 0){
+                ofInterest[i] <- TRUE
+            } else{ofInterest[i] <- FALSE}
+        }
+
+        if(sum(ofInterest) == 0){
+            print(paste(test_set, test_class, "NO SIG"))
+            next
+        }
+        write.table(file= "~/spoa/analysis/test.go", out, quote=FALSE, col.names=TRUE, row.names=FALSE, sep="\t")
+    
+        system('cat ~/spoa/analysis/test.go |  sed \'s/;/,/g\' | sed \'s/,$//g\' > ~/spoa/analysis/test.annotation')
+    
+        geneID2GO <- readMappings(file = "~/spoa/analysis/test.annotation")
+        # set gene background
+        geneUniverse <- names(geneID2GO)
+    
+        genesOfInterest <- names(geneID2GO[ofInterest])
+    
+        #show genes of interest in universe vector
+        geneList <- factor(as.integer(geneUniverse %in% genesOfInterest))
+        names(geneList) <- geneUniverse
+        print("BP cycle")
+        print(test_class)
+        print(test_set)
+        for(j in c("BP", "CC", "MF")){
+    
+            myGOdata <- new("topGOdata", description="My project", 
+                ontology=j, allGenes=geneList,
+                annot = annFUN.gene2GO, gene2GO = geneID2GO,
+                nodeSize = 5 )
+            resultWeight <- runTest(myGOdata, algorithm="weight01", statistic="fisher")
+            resultClassic <- runTest(myGOdata, algorithm="classic", statistic="fisher")
+            allRes <- GenTable(myGOdata, classicFisher = resultClassic,  weight = resultWeight, orderBy = "weight", ranksOf  = "weight"  ,
+                topNodes = length(resultWeight@score))
+            allRes$ontology <- j
+            out.save <- rbind(out.save,allRes[which(allRes$weight < 0.05 ),])
+        }
+        write.table(file=paste("~/spoa/analysis/", test_set, "_", test_class, "_GO.txt", sep=""), 
+                 out.save, col.names=TRUE,
+                row.names=FALSE, quote=FALSE,sep="\t")
+    }
+
+
+}
+
+
+# note that "feasible" drops some terms. you might have some terms in the GO annotations for your gene universe that don't exist in the version of the GO hierarchy that TopGO uses (which comes from the GO.db R package). Unfortunately this means that TopGO actually only uses some of your input data, and throws some away. Note that also, you may have chosen to use 'BP' (biological process) terms but many of your input annotations may be molecular function (MF) or cellular component (CC) terms.
 
 
 
@@ -373,9 +443,11 @@ write.table(goids,"~/Documents/UVM/spoa/node5_summarytable_BP.txt", col.names=T,
 df <- read.csv("~/Documents/UVM/spoa/node5_summarytable_BP.txt", header=T, sep="\t")
 
 #BiocManager::install("org.Dm.eg.db")
-### IMPORTANT!!!
+### IMPORTANT!
 # trace(godata, edit=TRUE)
-## need to edit this from GO to GOALL to work with topgo...
+## need to edit this to work with topgo
+### on line 12: columns = c("GO", "ONTOLOGY")))
+#### change GO to GOALL
 ## note that this makes the go mapping data MUCH slower to compute.
 ## this needs to be done every time youopen a new R session
 hsGObp <- godata('org.Dm.eg.db', ont="BP", computeIC=FALSE)
@@ -626,7 +698,7 @@ write.table(goids,"~/Documents/UVM/spoa/summarytable_CC_d1_vs_d7.txt", col.names
 
 ```
 
-
+Note that the GO figure in the manuscript was generated using these output with editing in inkscape.
 
 
 
