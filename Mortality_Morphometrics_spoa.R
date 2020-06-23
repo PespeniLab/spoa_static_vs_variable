@@ -10,7 +10,6 @@ survival <- read.csv("~/Desktop/UVM/DISSERTATION/Chp1_SpOA/Data/SpOA_MortalityDa
 head(survival)
 
 MyDF <- survival
-MyDF
 
 pHlogit <- glm(cbind(Alive,Dead)~Treatment, data=MyDF, family=binomial)
 summary(pHlogit)
@@ -47,30 +46,12 @@ summary(glht(pHlogit, mcp(Treatment="Tukey")))
 ---
   #  Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
   #(Adjusted p values reported -- single-step method)
-  
-
-#tiff("~/Desktop/Chp1_SpOA/R_Work/LarvalSurvival_res600_binomial.tiff", height=200, width=150, units="mm", res=600)
-#survival$Treatment<-factor(survival$Treatment, levels=c("8.1S", "8.1V", "7.5S", "7.5V", "7.0S", "7.0V"))
-#boxplot(survival$Alive ~ survival$Treatment, col=c("darkgreen", "darkseagreen1","#2222ff","lightskyblue","#be0000","#ff817b"), xlab="pH", ylab="Percent survival at 7 days post-fertilization", par(font.axis=2), par(font.lab=2))
-
-#dev.off()
 
 
 ### MORPHOMETRICS: BODY + ARM (Total Body Length) ###
 pluteus <- read.csv("~/Desktop/UVM/DISSERTATION/Chp1_SpOA/Data/SpOA_REALTotalLarvalBodyLength_ForR.csv")
-#attach(pluteus)
-head(pluteus)
-tail(pluteus)
 
 ### RUNNING LINEAR MODEL ###
 
 m2 <- glm(TotalBodyLength~pH, data=pluteus, family=("gaussian"))
 summary(m2)
-
-boxplot(pluteus$TotalBodyLength ~ pluteus$pH)
-
-#tiff("~/Desktop/Chp1_SpOA/R_Work/Totallarvalbodylength_res600.tiff", height=200, width=150, units="mm", res=600)
-#pluteus$pH<-factor(pluteus$pH, levels=c("8.1S", "8.1V", "7.5S", "7.5V", "7.0S", "7.0V"))
-#boxplot(pluteus$TotalBodyLength ~ pluteus$pH, col=c("mediumblue", "royalblue1","darkgreen","green3","red2","lightcoral"), xlab="pH", ylab="Total Body Length (micrometers)", par(font.axis=2), par(font.lab=2))
-
-#dev.off()
