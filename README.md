@@ -13,30 +13,32 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 #### Prep for alignment
 
 - Trim with trimmomatic
+    - `FILENAME`
 - sort and index genome
     - `SortIndexSamtools.sh`
 
 #### align
 
 - align with bwa mem
+    - `FILENAME`
 
 #### Call variants
 
 - initially using varscan with very lenient parameters. This requires more stringent filtering in the next step.
+    - `FILENAME`
 
 #### Filter variants
 
 - Filter by missing, depth, MAF, and so on.
-
+    - `FILENAME`
 
 ### Analysis and figures
 
 -PCA, PERMANOVA
-  - Fig02_PCA.R
+  - `Fig02_PCA.R`
 
 - Calculate CMH statistic
-
-
+    - `FILENAME`
 
 - Run GO enrichment
   - `gene_annotation_enrichment.md`
@@ -51,6 +53,6 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 - fig 5: in `gene_annotation_enrichment.md`
 
 - supplemental figures
-  - Fig. S1: `snp_class_plot.R`- plot and analysis of loci in different regions of the genome.
-
+  - Fig. S1: `snp_class_plot.R`
+  - GO supplemental figures in `gene_annotation_enrichment.md`
 
