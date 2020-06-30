@@ -43,7 +43,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 #### Call variants
 
 - initially using varscan with very lenient parameters. This requires more stringent filtering in the next step.
-    - `FILENAME`
+    - `snpcalling_varscan_spoa.sh`
 
 #### Filter variants
 
