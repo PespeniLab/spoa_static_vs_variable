@@ -31,7 +31,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 #### Prep for alignment
 
 - Trim with trimmomatic
-    - `FILENAME`
+    - `Trimmomatic_spoa.sh`
 - sort and index genome
     - `SortIndexSamtools.sh`
 
