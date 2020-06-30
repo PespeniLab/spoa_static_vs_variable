@@ -38,7 +38,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 #### align
 
 - align with bwa mem
-    - `FILENAME`
+    - `bwamem_spoa.sh`
 
 #### Call variants
 
