@@ -56,7 +56,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
   - `Fig02_PCA.R`
 
 - Calculate CMH statistic
-    - `FILENAME`
+    - `CMH_spoa.R`
 
 - Run GO enrichment
   - `gene_annotation_enrichment.md`
