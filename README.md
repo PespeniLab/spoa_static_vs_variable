@@ -48,7 +48,7 @@ Below are scripts to run the full analysis for the manuscript. A short descripti
 #### Filter variants
 
 - Filter by missing, depth, MAF, and so on.
-    - `FILENAME`
+    - `snpfiltering_spoa.R`
 
 ### Analysis and figures
 
